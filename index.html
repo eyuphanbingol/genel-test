@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Staj Sınav Çalışması</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: tek sütunlu çalışma aracı. Üstte sekmeler, altında kurulum / soru / sonuç ekranları. */
+:root {
+  --bg: #eef3f3;
+  --surface: #ffffff;
+  --surface-2: #f5f9f9;
+  --ink: #12242b;
+  --muted: #566b73;
+  --line: #d3dfe1;
+  --accent: #0d6b78;
+  --accent-ink: #ffffff;
+  --accent-soft: #d9eff1;
+  --good: #1b7a45;
+  --good-soft: #def3e5;
+  --bad: #b03020;
+  --bad-soft: #fae3de;
+  --code-bg: #e6eff0;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1a1e;
+    --surface: #15252b;
+    --surface-2: #1a2e35;
+    --ink: #e5eef0;
+    --muted: #94a9b0;
+    --line: #2a424b;
+    --accent: #52c6d4;
+    --accent-ink: #06262b;
+    --accent-soft: #123a41;
+    --good: #62d595;
+    --good-soft: #12331f;
+    --bad: #ff8d79;
+    --bad-soft: #3b1b15;
+    --code-bg: #20373f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1a1e;
+  --surface: #15252b;
+  --surface-2: #1a2e35;
+  --ink: #e5eef0;
+  --muted: #94a9b0;
+  --line: #2a424b;
+  --accent: #52c6d4;
+  --accent-ink: #06262b;
+  --accent-soft: #123a41;
+  --good: #62d595;
+  --good-soft: #12331f;
+  --bad: #ff8d79;
+  --bad-soft: #3b1b15;
+  --code-bg: #20373f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-block: 16px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.15; }
+p { margin: 0; }
+code {
+  font-family: var(--font-mono);
+  font-size: .86em;
+  background: var(--code-bg);
+  padding: 1px 6px;
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---- üst başlık ve sekmeler ---- */
+.top { display: flex; flex-direction: column; gap: 12px; }
+.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand small { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.brand h1 { font-size: clamp(26px, 6vw, 34px); font-weight: 800; }
+.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tab { flex: 1; border: 0; background: transparent; padding: 10px 8px; border-radius: 9px; font-weight: 600; color: var(--muted); min-width: 0; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.tab .n { font-family: var(--font-mono); font-size: 12px; opacity: .85; margin-left: 4px; }
+
+/* ---- paneller ---- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.panel h2 { font-size: 20px; font-weight: 800; }
+.label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 8px 14px; font-weight: 500; min-width: 0; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+.chip .c { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.chip[aria-pressed="true"]::before { content: "✓"; color: var(--accent); font-weight: 700; }
+
+.seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; width: 100%; }
+.seg button { flex: 1; border: 0; background: var(--surface-2); padding: 10px 6px; font-weight: 600; border-right: 1px solid var(--line); min-width: 0; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.check { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); }
+
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 12px 18px; font-weight: 600; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-size: 17px; padding: 14px 18px; }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.block { width: 100%; }
+
+.bank { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.bank b { font-family: var(--font-display); font-size: 22px; }
+.note { color: var(--muted); font-size: 14px; }
+
+/* ---- soru ekranı ---- */
+.qhead { display: flex; align-items: center; gap: 12px; }
+.qhead .btn { padding: 8px 12px; font-size: 14px; }
+.prog { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .25s ease; }
+.progtxt { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.progtxt .ok { color: var(--good); }
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.tag { align-self: flex-start; font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; background: var(--accent-soft); color: var(--ink); border-radius: 6px; padding: 3px 8px; }
+.qtext { font-family: var(--font-display); font-size: clamp(19px, 4.6vw, 23px); font-weight: 600; line-height: 1.3; text-wrap: pretty; overflow-wrap: anywhere; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: flex-start; text-align: left; width: 100%; border: 1.5px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.opt .k { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--muted); }
+.opt .t { min-width: 0; overflow-wrap: anywhere; padding-top: 2px; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.correct { background: var(--good-soft); border-color: var(--good); }
+.opt.correct .k { background: var(--good); border-color: var(--good); color: var(--bg); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt.wrong .k { background: var(--bad); border-color: var(--bad); color: var(--bg); }
+.opt:disabled { cursor: default; }
+.opt.dim { opacity: .6; }
+.feedback { border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; background: var(--surface-2); border: 1px solid var(--line); }
+.feedback.good { background: var(--good-soft); border-color: var(--good); }
+.feedback.bad { background: var(--bad-soft); border-color: var(--bad); }
+.feedback strong { font-family: var(--font-display); font-size: 18px; }
+.feedback.good strong { color: var(--good); }
+.feedback.bad strong { color: var(--bad); }
+
+/* ---- sonuç ---- */
+.score { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.ring { --p: 0; width: 118px; height: 118px; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); display: grid; place-items: center; flex: none; }
+.ring > div { width: 92px; height: 92px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 28px; font-variant-numeric: tabular-nums; }
+.score h2 { font-size: 26px; }
+.score p { color: var(--muted); }
+.cats { display: flex; flex-direction: column; gap: 10px; }
+.catrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.catrow .bar { grid-column: 1 / -1; }
+.catrow span:last-child { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.wlist { display: flex; flex-direction: column; gap: 10px; }
+.witem { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; background: var(--surface-2); }
+.witem .q { font-weight: 600; overflow-wrap: anywhere; }
+.witem .a { color: var(--good); overflow-wrap: anywhere; }
+.witem .a b { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.witem .e { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+
+/* ---- sözlü kartlar ---- */
+.scard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.sq { font-family: var(--font-display); font-size: clamp(20px, 5vw, 25px); font-weight: 600; line-height: 1.28; text-wrap: pretty; }
+.sa { border-left: 4px solid var(--accent); background: var(--surface-2); border-radius: 0 12px 12px 0; padding: 14px 16px; overflow-wrap: anywhere; }
+.sa .label { display: block; margin-bottom: 6px; }
+.nav { display: flex; gap: 8px; }
+.nav .btn { flex: 1; }
+.empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+// [kategori, soru, doğru, [3 yanlış], açıklama]
+const Q1 = [
+// ---------- SIR: Şirket ve staj bilgileri ----------
+["SIR","Stajın yapıldığı kurum hangisidir?","Delta-A Software Center",["Delta-A Cloud Academy","Delta Kassen GmbH","DATEV Software Center"],"Staj, Delta-A Group'un Türkiye'deki yazılım geliştirme ofisi olan Delta-A Software Center'da yapıldı."],
+["SIR","Delta-A Group'un merkezi hangi ülkededir?","Almanya",["Türkiye","Avusturya","İsviçre"],"Delta-A Group Almanya merkezli bir yazılım şirketidir."],
+["SIR","Delta-A Software Center hangi şehirde faaliyet göstermektedir?","Erzurum",["Erzincan","Ankara","İstanbul"],"Ofis Erzurum'da, Yakutiye ilçesindeki Özlem İş Merkezi'nde bulunur."],
+["SIR","Ana şirket Delta-A Group hangi bölgede BT hizmetleri sunar?","Südwürttemberg",["Bayern","Hessen","Berlin-Brandenburg"],"Defterde ana şirketin Südwürttemberg bölgesinde BT hizmetleri ve dijital çözümler alanında faaliyet gösterdiği yazılıdır."],
+["SIR","Staj hangi tarihler arasında yapılmıştır?","01/09/2026 - 28/09/2026",["01/08/2026 - 28/08/2026","15/09/2026 - 12/10/2026","02/09/2026 - 30/09/2026"],"Staj 01/09/2026 ile 28/09/2026 arasında yapıldı."],
+["SIR","Staj toplam kaç iş günü sürmüştür?","20",["15","25","30"],"Defterde staj 20 iş günü olarak belirtilmiştir ve 20 günlük çalışma sayfası vardır."],
+["SIR","Staj hangi ekipte yapılmıştır?","Web geliştirme ekibi",["Mobil uygulama ekibi","Veritabanı yönetimi ekibi","Destek (support) ekibi"],"Staj, Delta-A Software Center'ın web geliştirme ekibinde yapıldı."],
+["SIR","Kurumda toplam kaç personel görev yapmaktadır?","10",["5","25","50"],"Defterde kurumda toplam 10 personel çalıştığı yazılıdır."],
+["SIR","Web geliştirme ekibi kimin koordinasyonunda çalışmaktadır?","Bir ekip lideri",["Bir proje müdürü","Genel müdür","Yazılım mimarı komitesi"],"Ekip bir ekip lideri koordinasyonunda çalışır."],
+["SIR","DCO kısaltması neyi ifade eder?","Delta Cloud Office",["Delta Customer Order","Digital Cash Office","Delta Code Organizer"],"DCO, şirketin bulut tabanlı işletme yönetim yazılımı Delta Cloud Office'tir."],
+["SIR","Delta Cloud Office (DCO) ne işe yarar?","İşletmelerin işlerini bulutta tek yerden yönetmesini sağlar",["Sadece fiş yazdırır","Sadece muhasebe defteri tutar","Sadece depo sayımı yapar"],"DCO; kasa, satış, stok, raporlama gibi günlük işleri tek yerden takip etmeyi sağlayan işletme yönetim yazılımıdır."],
+["SIR","Delta X Kassensoftware nedir?","Perakende ve hizmet sektörüne yönelik kasa yazılımı",["Stok yönetim sistemi","DATEV entegrasyon aracı","Proje takip platformu"],"Kassensoftware, fiş kesme, ödeme alma gibi kasa işlemlerini yapan kasa programıdır."],
+["SIR","DCW kısaltmasının açılımı nedir?","Delta Cloud Warenwirtschaft",["Delta Cloud Webservice","Delta Customer Workflow","Delta Cash Window"],"Warenwirtschaft, stok / mal yönetimi demektir. DCW stok yönetim sistemidir."],
+["SIR","Depoda hangi üründen kaç adet kaldığını takip eden sistem hangisidir?","DCW",["DCO","Delta X Kassensoftware","OpenProject"],"DCW stok yönetim sistemidir."],
+["SIR","DATEV entegrasyon hizmetinin amacı nedir?","Satış ve fatura verilerini Almanya'daki muhasebe sistemiyle uyumlu ve hatasız aktarmak",["Web sitesi tasarlamak","Kasa donanımı satmak","Mobil uygulama yayınlamak"],"Kasadaki satış ve fatura bilgileri, mali müşavirin DATEV programına hata riski olmadan gönderilir."],
+["SIR","Kurumun 'BT hizmetleri ve yazılım danışmanlığı' kapsamında neler yapılır?","Müşterilere özel yazılımlar üretilir, mevcut ürünler güncellenir",["Sadece bilgisayar tamiri yapılır","Sadece donanım satılır","Sadece eğitim verilir"],"Müşteriye özel yazılım çözümleri üretmek ve mevcut ürünleri güncellemek bu hizmetin tarifidir."],
+["SIR","Kurumun ürünleri hangi tür işletmelere yöneliktir?","Restoran, fırın, kasap, kuaför ve perakende mağazaları",["Sadece bankalar","Sadece hastaneler","Sadece okullar"],"Defterde ürünlerin restoran, fırın, kasap, kuaför ve perakende mağazalarına yönelik geliştirildiği yazılıdır."],
+["SIR","Ekip içi 'daily' toplantısı nasıl yapılır?","Her gün çevrim içi",["Haftada bir yüz yüze","Ayda bir","Sadece proje başlangıcında"],"Daily toplantısı her gün çevrim içi yapılır."],
+["SIR","Daily toplantısında ne paylaşılır?","Bir önceki gün yapılan işler ve gün içinde planlanan görevler",["Maaş ve izin bilgileri","Müşteri faturaları","Sunucu şifreleri"],"Ekip üyeleri dünün çalışmalarını ve bugünün görevlerini paylaşır."],
+["SIR","Daily toplantısının amacı nedir?","Ekip içi iletişimi ve görev takibini sağlamak",["Kod derlemek","Müşteriyle sözleşme imzalamak","Veritabanı yedeklemek"],"Daily, kısa bir senkronizasyon toplantısıdır."],
+["SIR","Staj yeri neden seçilmiştir?","React tabanlı projeler geliştirdiği için",["Android cihaz ürettiği için","Sadece ücret verdiği için","Oyun geliştirdiği için"],"Kurumun React tabanlı projeler geliştirmesi, React.js ve React Native bilgilerinin uygulanmasına olanak sağlayacağı için tercih edildi."],
+["SIR","Kurumun Erzurum'da bulunmasının öğrenciye sağladığı kolaylık nedir?","Ulaşım ve konaklama",["Ücretsiz yemek","Uzaktan çalışma","Ek ders kredisi"],"Defterde ulaşım ve konaklama açısından kolaylık sağladığı yazılıdır."],
+["SIR","Stajdan beklentiler arasında aşağıdakilerden hangisi VAR?","Kotlin ile mobil programlama ve SQLite pratiği",["Yapay zekâ modeli eğitmek","Oyun motoru geliştirmek","Ağ güvenliği testi yapmak"],"Beklentiler: React ve modern web teknolojileri, Kotlin ile mobil programlama, SQLite yönetimi ve iş hayatına bakış."],
+["SIR","Stajın ilk gününde aşağıdakilerden hangisi yapıldı?","Ekiple tanışıldı ve daily toplantısına katılındı",["Android uygulaması teslim edildi","JSON Server kuruldu","OpenProject raporu yazıldı"],"İlk gün oryantasyon günüdür: tanışma, daily toplantısı, firma sitesi incelemesi ve teknolojilere ön bilgi."],
+["SIR","Stajın ilk günü hangi teknolojiler tanıtıldı?","React, Node.js ve Tailwind CSS",["Angular, PHP ve Laravel","Flutter, Dart ve Firebase","Django, Flask ve Pandas"],"Bu aşamada teknik ayrıntıya girilmeden React, Node.js ve Tailwind CSS tanıtıldı."],
+["SIR","React web uygulaması hangi tarihler arasında geliştirilmiştir?","02/09/2026 - 14/09/2026",["01/09/2026 - 05/09/2026","15/09/2026 - 24/09/2026","25/09/2026 - 28/09/2026"],"Web projesi 02/09 - 14/09 arasında tamamlandı."],
+["SIR","Android uygulaması hangi tarihler arasında geliştirilmiştir?","15/09/2026 - 24/09/2026",["02/09/2026 - 14/09/2026","25/09/2026 - 28/09/2026","01/09/2026 - 10/09/2026"],"Android çalışmaları 15/09 - 24/09 arasında yapıldı."],
+["SIR","OpenProject incelemesi hangi günlerde yapılmıştır?","25/09/2026 ve 28/09/2026",["01/09/2026 ve 02/09/2026","14/09/2026 ve 15/09/2026","21/09/2026 ve 22/09/2026"],"Stajın son iki günü OpenProject incelemesine ayrıldı."],
+["SIR","Web projesinin gereksinimleri hangi dosyayla iletilmiştir?","React_Assesment.pptx",["Android_Assessment.docx","gereksinimler.pdf","db.json"],"Gereksinimler React_Assesment.pptx adlı sunum dosyasıyla iletildi."],
+["SIR","Web projesindeki açılış animasyonu hangi firma sitesindeki animasyona benzetilmiştir?","delta-acloud.de",["delta-group.com","datev.de","openproject.org"],"Hedef, firmanın delta-acloud.de adresindeki açılış animasyonuna benzer bir giriş ekranıydı."],
+["SIR","Tablo yapısı için hangi ekran örnek alınmıştır?","DCO ürünündeki kasa defteri ekranı",["Kassensoftware fiş ekranı","DCW stok sayım ekranı","OpenProject ticket listesi"],"Ekip lideri DCO'daki kasa defteri ekranını tablo yapısına örnek olarak gösterdi."],
+["SIR","Staj defterindeki günlük çalışma sayfalarını kim onaylamıştır?","Selahattin Alperen Bakır (Bilgisayar Mühendisi)",["Ekip lideri","Genel müdür","Bölüm başkanı"],"Onay kutusunda Selahattin Alperen Bakır, Bilgisayar Mühendisi yazar."],
+["SIR","Stajın türü nedir?","Yazılım stajı",["Donanım stajı","Ağ ve sistem stajı","Siber güvenlik stajı"],"Defterin kapağında 'YAZILIM STAJI' yazar."],
+["SIR","Staj boyunca kaç proje üzerinde çalışılmıştır?","İki (React web uygulaması ve Android uygulaması)",["Bir","Üç","Dört"],"Biri React web, diğeri Kotlin Android uygulaması; son iki gün OpenProject incelendi."],
+["SIR","Aşağıdakilerden hangisi stajda kullanılan araçlardan biri DEĞİLDİR?","Figma ile arayüz prototipi",["Visual Studio Code","Android Studio","MS Teams"],"Kullanılanlar: VS Code, Node.js/npm, Vite, ESLint, Android Studio, OpenProject, MS Teams, PowerPoint. Figma kullanılmadı."],
+["SIR","PowerPoint stajda ne amaçla kullanılmıştır?","Proje sunumlarını incelemek ve açılış animasyonunun GIF dosyasını elde etmek",["Raporları yazdırmak","Veritabanı oluşturmak","Kod derlemek"],"Sunum dosyaları incelendi ve animasyona ait GIF dosyası buradan elde edildi."],
+
+// ---------- OPN: OpenProject ve destek süreçleri ----------
+["OPN","OpenProject platformu stajda ne için incelenmiştir?","Destek taleplerinin (ticket) yaşam döngüsü ve statü bazlı iş takibi için",["Veritabanı tasarımı için","Mobil uygulama testi için","Kod derleme için"],"Platform; müşteri ve sistem kaynaklı destek taleplerinin yönetimi, iş yükü takibi ve ekip içi iletişim için kullanılır."],
+["OPN","'1 - OPEN' statüsü neyi gösterir?","Henüz işleme alınmamış veya yeni atanmış talepleri",["Test edilen talepleri","Kapatılmış talepleri","Silinmiş talepleri"],"Open menüsü, yeni veya henüz işleme alınmamış taleplerin takip edildiği aşamadır."],
+["OPN","'4 - IN TESTING' statüsünde ne yapılır?","Son kontrol, kalite güvence ve test; canlıya almaya hazır mı bakılır",["Talep silinir","Talep ilk kez oluşturulur","Müşteriye fatura kesilir"],"Çalışması tamamlanan işler test süreçlerinden geçirilerek canlı ortama aktarılmaya hazır olup olmadığı değerlendirilir."],
+["OPN","'2 - CLOSED' statüsündeki talepler hakkında doğru olan hangisidir?","Çözüme kavuşmuş talepler kapatılır ve raporlama için sistemde saklanır",["Silinerek yok edilir","Yeniden Open'a alınmak zorundadır","Sadece yöneticiler görebilir"],"Kapatılan talepler geçmişe dönük iş takibi ve raporlama için sistemde tutulur."],
+["OPN","OpenProject liste görünümünde talepler için hangi bilgiler yer alır?","ID, Subject, Priority, Assignee",["Ad, Soyad, Telefon, Adres","Fiyat, Stok, Marka, Adet","Şehir, Ülke, Posta kodu, Ad"],"Liste görünümünde ID, Subject (konu), Priority (öncelik) ve Assignee (atanan kişi) bilgileri bulunur."],
+["OPN","Detay sayfası incelenen destek talebi hangi müşteri için oluşturulmuştur?","Kapadokya Market",["Erzurum Fırın","Delta Cafe","Yakutiye Kasap"],"Kapadokya Market için oluşturulan talebin detay sayfası incelendi."],
+["OPN","Detay sayfası incelenen talebin numarası nedir?","#15430",["#1543","#14350","#50314"],"Kapadokya Market talebi #15430 numaralıdır."],
+["OPN","Talep detay sayfasındaki 'Activity' bölümünde ne görülür?","Ekip üyelerinin yorumları ve iletişim geçmişi",["Sunucu logları","Kasa satış raporu","Kod değişiklikleri"],"Sayfanın sağındaki Activity bölümü, problem hakkındaki yorum ve iletişim geçmişini tutar."],
+["OPN","Son gün gözlemlenen görev dağılımında kaç görev 'açık' durumdaydı?","15",["8","13","795"],"Dağılım: 15 açık, 795 kapalı, 8 devam eden, 13 test aşamasında."],
+["OPN","Son gün gözlemlenen görev dağılımında kaç görev 'kapalı' durumdaydı?","795",["15","13","8"],"795 kapalı görev vardı."],
+["OPN","Son gün gözlemlenen görev dağılımında kaç görev 'devam eden' durumdaydı?","8",["15","13","795"],"8 devam eden görev vardı."],
+["OPN","Son gün gözlemlenen görev dağılımında kaç görev 'test aşamasında' idi?","13",["15","8","795"],"13 görev test aşamasındaydı."],
+["OPN","Dört durumdaki görevlerin toplamı (15 + 795 + 8 + 13) kaçtır?","831",["821","841","813"],"15 + 795 + 8 + 13 = 831."],
+["OPN","Ekip içi görev dağılımı ve iş yükü hangi kanal üzerinden iletilir?","MS Teams",["WhatsApp","E-posta zinciri","Telegram"],"Görevlerin güncel dağılımı MS Teams üzerinden her gün iletilir."],
+["OPN","Bir destek talebinin yaşam döngüsü nasıl ilerler?","Oluşturulur, işlenir, test edilir ve çözülüp kapatılır",["Önce kapatılır, sonra oluşturulur","Sadece oluşturulur","Sadece silinir"],"Talep oluşumundan çözüme kavuşup kapatılmasına kadar statüler aracılığıyla takip edilir."],
+];
+
+const Q2 = [
+// ---------- WEB: React, Vite, router, JSON Server ----------
+["WEB","Vite nedir?","Hızlı çalışan, hazır iskelet sunan bir geliştirme aracı",["Bir veritabanı yönetim sistemi","Bir CSS kütüphanesi","Bir Android emülatörü"],"Vite; hızlı çalışır, hazır proje iskeleti sunar ve değişiklikleri anında tarayıcıya yansıtır."],
+["WEB","React projesi hangi komutla oluşturuldu?","`npm create vite@latest staj-projesi -- --template react`",["`npx create-android staj-projesi`","`node new react staj-projesi`","`npm run dev staj-projesi`"],"Vite ile staj-projesi adlı React projesi bu komutla oluşturuldu."],
+["WEB","Oluşturulan React projesinin adı nedir?","staj-projesi",["CustomerApp","delta-web","react-assessment"],"Web projesi staj-projesi, Android projesi CustomerApp adını taşır."],
+["WEB","Node.js'in kurulu olup olmadığını kontrol eden komut hangisidir?","`node -v`",["`npm start`","`npx node`","`vite --check`"],"node -v komutu sürüm bilgisini verir ve kurulumu doğrular."],
+["WEB","Vite ile oluşturulan projeyi yerelde çalıştıran komut hangisidir?","`npm run dev`",["`npm install react`","`npx json-server`","`node -v`"],"npm run dev geliştirme sunucusunu başlatır."],
+["WEB","Projede ESLint neden seçilmiştir?","Kod satırlarını ve olası yazım hatalarını kontrol etmek için",["Veritabanını yedeklemek için","Animasyon oluşturmak için","Sayfaları yönlendirmek için"],"ESLint bir linter'dır; kod standartlarını ve yazım hatalarını denetler."],
+["WEB","Vite'ın hazır şablonundaki dönen logo ve sayaç butonu ne yapıldı?","Kaldırıldı, yerine basit bir başlık bileşeni konuldu",["Aynen bırakıldı","Android'e taşındı","Navbar'a dönüştürüldü"],"Örnek bileşenler silinip App içinde basit bir h1 başlığı oluşturuldu."],
+["WEB","Node.js ve npm bu projede ne için gereklidir?","Geliştirme ortamı için ve npm paketlerinin (react-router-dom, json-server) kurulumu için",["Sadece Android emülatörü için","Sadece görselleri sıkıştırmak için","Sadece PowerPoint açmak için"],"React projelerinde npm paketleri gerekir; bunun için Node.js kullanılır."],
+["WEB","Tailwind CSS'in sağladığı kolaylık nedir?","Ayrı bir CSS dosyasına gerek kalmadan stilleri bileşen içinde yazabilmek",["Veritabanına bağlanmak","Sayfalar arası geçiş","Animasyonu GIF'e çevirmek"],"Tailwind ile stiller doğrudan bileşen içinde tanımlanabilir (ilk gün gösterilen bilgi)."],
+["WEB","React'in 'bileşen tabanlı' olması ne sağlar?","Tasarlanan parçalar import edilerek tekrar kullanılabilir",["Veritabanı otomatik kurulur","Kodlar derlenmeden çalışır","Sayfa hiç yenilenmez, internet gerekmez"],"Bileşenler import edilerek başka yerlerde kullanılabilir."],
+["WEB","Aşağıdakilerden hangisi bir React hook'udur?","`useState`",["`setContentView`","`SQLiteOpenHelper`","`startActivity`"],"useState ve useEffect React hook'larıdır; diğerleri Android tarafındadır."],
+["WEB","`useState` projede ne için kullanılmıştır?","Bileşenin durumunu (state) tutmak için, ör. showIntro ve products",["Sayfalar arasında yönlendirme yapmak için","Veritabanı oluşturmak için","Paket kurmak için"],"showIntro, products, currentPage gibi değerler useState ile tutulur."],
+["WEB","`useEffect` ne için kullanılır?","Yan etkileri yönetmek; ör. sayfa açıldığında çalışacak işlemler",["CSS yazmak için","Tablo satırı oluşturmak için","Paket silmek için"],"useEffect, sayfa açıldığında çalışan zamanlayıcı ve veri çekme gibi yan etkiler için kullanılır."],
+["WEB","`useEffect` sonundaki boş bağımlılık dizisi `[]` ne anlama gelir?","Efekt yalnızca bir kez, bileşen ilk geldiğinde çalışır",["Efekt her saniye çalışır","Efekt hiç çalışmaz","Efekt her tıklamada çalışır"],"Boş dizi, efektin sadece ilk render sonrası bir kez çalışacağını belirtir."],
+["WEB","`showIntro` değişkeninin başlangıç değeri nedir?","true",["false","null","0"],"showIntro başlangıçta true'dur; animasyon açık başlar."],
+["WEB","Açılış animasyonu kaç saniye sonra kapanır?","3 saniye",["10 saniye","1 saniye","Tıklayana kadar kapanmaz"],"setTimeout 3000 ms ile kurulmuştur; 3 saniye sonra setShowIntro(false) çalışır."],
+["WEB","Açılış animasyonunu kapatan ifade hangisidir?","`setShowIntro(false)`",["`setShowIntro(true)`","`clearIntro()`","`window.close()`"],"setTimeout içinde setShowIntro(false) çağrılır ve animasyon kapanır."],
+["WEB","`setTimeout` bu projede ne iş yapar?","Belirli süre sonra animasyonu kapatan bir zamanlayıcı kurar",["Veriyi sunucuya gönderir","Sayfayı yeniden yükler","Tabloyu sıralar"],"Zamanlayıcı 3 saniye sonra animasyonu kaldırır."],
+["WEB","`useEffect` içindeki `clearTimeout` (return kısmı) neden yazılır?","Sayfadan çıkılınca zamanlayıcı temizlensin diye",["Tabloyu temizlemek için","Veriyi silmek için","Sayfayı hızlandırmak için"],"Cleanup fonksiyonu bileşen kaldırılınca zamanlayıcıyı iptal eder."],
+["WEB","Açılış animasyonu için hangi dosya türü kullanıldı?","GIF",["MP4","PDF","SVG"],"Animasyon PowerPoint dosyasından çıkarılan GIF dosyasıdır."],
+["WEB","GIF dosyası PowerPoint'ten nasıl elde edildi?","Dosya uzantısı ZIP yapılıp medya klasöründeki GIF kopyalandı",["Ekran görüntüsü alınarak","Resim Olarak Kaydet ile","E-postayla istenerek"],"pptx uzantısı zip yapılınca içindeki media klasöründe orijinal GIF bulunur."],
+["WEB","PowerPoint'in 'Resim Olarak Kaydet' özelliğiyle animasyon neden alınamadı?","Sadece durağan görüntüyü kaydediyor",["Dosya çok büyüktü","Format desteklenmiyor","İnternet yoktu"],"Bu yöntem animasyonun hareketli halini değil, yalnızca durağan görüntüsünü kaydeder."],
+["WEB","GIF dosyası React projesinde hangi klasöre eklendi?","`src/assets`",["`public/db`","`node_modules`","`res/drawable`"],"Animasyon src/assets klasörüne atıldı ve App.jsx'te import edildi."],
+["WEB","Animasyon App.jsx'te nasıl içeri alındı?","`import introGif from './assets/intro.gif'`",["`require('intro')`","`fetch('intro.gif')`","`startActivity(intro)`"],"Dosya en üstte import edilerek kullanıldı."],
+["WEB","React'in tek sayfalı bir uygulama olmasına rağmen sayfalar arası geçiş hangi paketle sağlandı?","react-router-dom",["json-server","eslint","tailwindcss"],"react-router-dom ile BrowserRouter, Routes, Route ve Link kullanıldı."],
+["WEB","react-router-dom paketini kuran komut hangisidir?","`npm install react-router-dom`",["`npm run react-router-dom`","`node react-router-dom`","`npx start react-router-dom`"],"İlk denemede 'npm install' komutu eksik yazıldığı için hata alındı."],
+["WEB","`BrowserRouter` ile uygulama hangi dosyada sarmalanmıştır?","`main.jsx`",["`db.json`","`index.css`","`package.json`"],"main.jsx içinde App, BrowserRouter ile sarmalanır; böylece URL izlenir."],
+["WEB","`Routes` ve `Route` ile hangi dosyada hangi URL'de hangi sayfanın açılacağı tanımlanmıştır?","`App.jsx`",["`main.jsx`","`db.json`","`AndroidManifest.xml`"],"App.jsx içinde path ve element ile eşleştirme yapılır."],
+["WEB","`<Route path=\"/\" element={<Home />} />` ifadesi ne yapar?","Ana URL'de Home (Ana Sayfa) bileşenini gösterir",["Home bileşenini siler","Sunucuyu başlatır","Veritabanına bağlanır"],"path URL'yi, element gösterilecek bileşeni belirtir."],
+["WEB","Navbar'daki `Link` bileşeni neyi sağlar?","Sayfayı yenilemeden ilgili sayfaya yönlendirme",["Veri çekme","Animasyon oynatma","Tabloyu sıralama"],"Link, `to` özelliğiyle verilen adrese geçiş yapar."],
+["WEB","Uygulamada kaç sayfa oluşturuldu ve hangileridir?","İki: Ana Sayfa ve Hakkında",["Üç: Ana Sayfa, Ürünler, İletişim","Bir: sadece Ana Sayfa","Dört: Ana Sayfa, Hakkında, Giriş, Çıkış"],"İlk sayfada ürün tablosu, ikinci sayfada Hakkında bölümü vardır."],
+["WEB","Navbar'da yapılan stil düzenlemesi hangisidir?","Koyu arka plan, beyaz yazı rengi, alt çizgi kaldırıldı",["Açık sarı arka plan, kırmızı yazı","Gradyan arka plan, alt çizgili","Şeffaf arka plan, siyah yazı"],"Navbar koyu arka planlı, bağlantı yazıları beyaz ve textDecoration none yapıldı."],
+["WEB","Footer bileşeni hangi amaçla eklendi?","Sayfa altında şirket adını göstermek için",["Veri çekmek için","Animasyonu başlatmak için","Tabloyu sayfalamak için"],"Footer'da şirket adı görüntülenir; sayfa navbar, içerik ve footer'dan oluşur."],
+["WEB","Hakkında sayfasında içerik için geçici olarak ne kullanıldı?","Lorem Ipsum örnek metni",["Gerçek şirket tarihçesi","Rastgele ürün listesi","Yapay zekâ üretimi bir makale"],"Geliştirme aşamasında örnek veri olarak Lorem Ipsum kullanıldı."],
+["WEB","Hakkında sayfasında içerik metni neden ortalanmıştı?","Vite'ın varsayılan CSS'indeki `text-align: center` tanımından",["Navbar bozuk olduğu için","React hatası nedeniyle","Footer yüzünden"],"Varsayılan stil kaldırıldı, yeni CSS düzenlemeleri yapıldı."],
+["WEB","Hakkında sayfasındaki içerik hangi yapı içine alındı?","Beyaz arka planlı bir kart",["Tablo","Modal pencere","Açılır menü"],"İçerik kart yapısına alınarak görsel düzen iyileştirildi."],
+["WEB","JSON Server ne işe yarar?","`db.json` dosyasını API gibi sunarak gerçek veritabanı kurmadan veri sağlar",["Android emülatörü çalıştırır","CSS derler","Kod hatalarını denetler"],"Sahte bir sunucu gibi davranır ve istek atınca JSON veri döndürür."],
+["WEB","JSON Server'ı 3001 portunda çalıştıran komut hangisidir?","`npx json-server db.json --port 3001`",["`npm run dev --port 3001`","`node db.json 3001`","`npx vite db.json`"],"Bu komut db.json dosyasını 3001 portunda sunar."],
+["WEB","JSON Server hangi portta çalıştırıldı?","3001",["3000","5173","8080"],"Veriler localhost:3001/products adresinden alınır."],
+["WEB","`db.json` içinde bir ürün için hangi bilgiler vardır?","Ad, marka, fiyat, stok miktarı ve toptan satış fiyatı",["Ad, soyad, ülke","Plaka, motor, renk","Kullanıcı adı ve şifre"],"id, name, brand, price, quantity ve wholesalePrice alanları vardır."],
+["WEB","`db.json` dosyasındaki ürün sayısı kaçtır?","22",["5","10","100"],"20'den fazla ürün hazırlandı; ekranda 'Yüklenen Ürün Sayısı: 22' görüldü."],
+["WEB","`db.json` değiştirildiğinde JSON Server'ı yeniden başlatmak gerekir mi?","Hayır, dosyayı otomatik izler",["Evet, her seferinde","Sadece silme işleminde","Sadece yeni ürün eklerken"],"JSON Server db.json'u otomatik izler; güncel veriler API'den erişilebilir."],
+["WEB","Projede neden gerçek bir veritabanı kullanılmadı?","Amaç ön yüz (frontend) geliştirmeye odaklanmaktı; veritabanı ayrı bir süreç gerektirir",["Veritabanı lisansı yoktu","React veritabanı desteklemez","Sunucu bozuktu"],"Ekip lideri, veritabanı kurulumunun mevcut proje kapsamı dışında tutulduğunu belirtti."],
+["WEB","Projenin gerçek ürüne dönüşmesi halinde hangi veritabanları önerildi?","Küçük ölçekte SQLite, büyük projelerde PostgreSQL veya MongoDB",["Sadece Excel","Sadece JSON dosyası","Sadece Firebase Auth"],"Defterde bu öneri yer alır."],
+["WEB","`fetch` nedir?","Tarayıcının bir adrese istek atmak için kullandığı fonksiyon",["CSS hazırlayıcı","Android bileşeni","Paket yöneticisi"],"fetch('http://localhost:3001/products') ile ürün verisi istenir."],
+["WEB","Ürünler hangi adresten çekildi?","`http://localhost:3001/products`",["`http://localhost:5173/db`","`https://delta-acloud.de/api`","`http://localhost:3001/customers`"],"JSON Server'ın products koleksiyonu bu adreste sunulur."],
+["WEB","Veri çekme (`fetch`) işlemi neden `useEffect` içinde yapıldı?","Bileşen ekrana ilk geldiğinde bir kez ve otomatik çalışsın diye",["Her tıklamada çalışsın diye","Hata vermesin diye","Daha çok bellek kullansın diye"],"fetch useEffect içinde tanımlanarak sayfa yüklenince otomatik çalıştı."],
+["WEB","Çekilen ürün verisi hangi yapıyla saklandı?","`useState` (`setProducts` ile)",["`localStorage` ile","SQLite ile","Intent ile"],"Başlangıçta boş olan products listesi, veri gelince setProducts ile dolduruldu."],
+["WEB","fetch zincirinde `res.json()` ne yapar?","Gelen yanıtı JSON formatına çevirir",["Yanıtı siler","Yanıtı XML yapar","Sunucuyu kapatır"],"then((res) => res.json()) yanıtı JSON'a dönüştürür."],
+["WEB","İnternet veya sunucu kaynaklı sorun olursa kodda ne olur?","`catch` ile hata konsola yazdırılır",["Uygulama kapanır","Sayfa otomatik yenilenir","Tablo silinir"],"catch((err) => console.log('Veri çekilirken hata oluştu:', err))"],
+["WEB","`products.length` ifadesi ne için kullanıldı?","Yüklenen ürün sayısını ekrana yazdırıp veri çekmeyi doğrulamak için",["Tabloyu sıralamak için","Sayfa numarasını değiştirmek için","Ürün fiyatını hesaplamak için"],"22 ürünün yüklendiği bu sayede doğrulandı."],
+["WEB","Ürün tablosunda kaç sütun vardır?","6",["3","4","8"],"ID, Name, Brand, Price, Quantity ve Wholesale Price."],
+["WEB","Aşağıdakilerden hangisi tablo sütunlarından biri DEĞİLDİR?","Country",["Brand","Quantity","Wholesale Price"],"Country müşteri (Android) tablosunun alanıdır."],
+["WEB","Tablo satırlarını oluşturmak için hangi fonksiyon kullanıldı?","`map`",["`filter`","`push`","`setTimeout`"],"map, dizideki her ürün için bir <tr> satırı oluşturur."],
+["WEB","`map` içindeki `key={product.id}` ne işe yarar?","Her satırı React için benzersiz tanımlar",["Satırı siler","Satırın rengini belirler","Veriyi sunucuya gönderir"],"key, React'in listedeki öğeleri ayırt etmesini sağlar."],
+["WEB","Tablonun başlık satırı nasıl düzenlendi?","Koyu renkli yapıldı",["Gizlendi","Her sayfada değişti","Kırmızı yapıldı"],"Okunabilirlik için başlık satırı koyu renkli düzenlendi."],
+["WEB","Sayfalama (pagination) neden eklendi?","Kayıtların daha düzenli görüntülenmesi için; 22 ürün aynı sayfada gösterilmesin diye",["Hızlı internet için","Tablo silinsin diye","Veritabanı küçülsün diye"],"Her sayfada sınırlı sayıda ürün gösterildi."],
+["WEB","Her sayfada kaç ürün gösterilir?","5",["10","3","22"],"Her sayfada beş ürün gösterilecek şekilde yapılandırıldı."],
+["WEB","22 ürün her sayfada 5 ürünle gösterilirse toplam kaç sayfa olur?","5",["4","6","22"],"22 / 5 = 4,4 olduğundan yukarı yuvarlanır: 5 sayfa."],
+["WEB","Sayfalamada mevcut sayfayı tutan durum değişkeninin adı nedir?","`currentPage`",["`showIntro`","`selectedCustomer`","`products`"],"currentPage durum değişkeni aktif sayfayı belirler."],
+["WEB","Aktif sayfaya ait ürünleri belirlemek için hangi JavaScript metodu kullanıldı?","`slice`",["`splice`","`concat`","`join`"],"slice ile ürün listesinden yalnızca o sayfanın kayıtları alınır."],
+["WEB","İlk sayfada hangi buton pasif olur?","Geri",["İleri","İkisi de","Hiçbiri"],"disabled={currentPage === 1} ile Geri butonu ilk sayfada pasiftir."],
+["WEB","Son sayfada hangi buton pasif olur?","İleri",["Geri","İkisi de","Hiçbiri"],"disabled={currentPage === totalPages} ile İleri butonu son sayfada pasiftir."],
+["WEB","Sayfalama bileşeni sayfa bilgisini nasıl gösterir?","Mevcut sayfa / toplam sayfa şeklinde",["Sadece ürün adını","Sadece fiyatı","Hiçbir şey göstermez"],"Örneğin 'Sayfa 1 / 5' gibi gösterilir."],
+];
+
+const Q3 = [
+// ---------- AND: Kotlin, SQLite, RecyclerView ----------
+["AND","Android uygulaması hangi görev kapsamında geliştirilmiştir?","Delta-A Android Assessment",["React Assessment","Kassensoftware Test","OpenProject Görevi"],"Web projesinden sonra Delta-A Android Assessment sunum dosyasındaki gereksinimlere göre uygulama geliştirildi."],
+["AND","Android uygulaması hangi ortamda geliştirilmiştir?","Android Studio",["Visual Studio Code","Eclipse","Xcode"],"Android projesi Android Studio'da Kotlin ile geliştirildi."],
+["AND","Android uygulamasında hangi programlama dili kullanılmıştır?","Kotlin",["Java Script","Dart","Swift"],"Görev tercihen Kotlin ile istenmişti ve Kotlin kullanıldı."],
+["AND","Yeni proje oluşturulurken hangi şablon seçildi?","Empty Views Activity",["Bottom Navigation Views Activity","Empty Activity (Compose)","Basic Views Activity"],"File > New Project üzerinden Empty Views Activity seçildi."],
+["AND","Android projesinin adı nedir?","CustomerApp",["staj-projesi","DeltaAndroid","MusteriListesi"],"Proje adı CustomerApp olarak oluşturuldu."],
+["AND","Görevde hangi tablo istenmiştir ve kaç alanı vardır?","Customer tablosu; yalnızca isim ve ülke alanları",["Product tablosu; 6 alan","Order tablosu; 4 alan","User tablosu; şifre ve e-posta"],"Customer tablosu yalnızca iki temel veri alanından oluşur (name ve country); id otomatik artan birincil anahtardır."],
+["AND","Görevde istenen işlemler hangileridir?","Müşteri ekleme, güncelleme, silme ve RecyclerView ile listeleme",["Ödeme alma ve fiş yazdırma","Harita gösterme ve konum alma","Kamera ile fotoğraf çekme"],"Zorunlu özellikler: Customer tablosu, RecyclerView ile listeleme, ekleme, silme, güncelleme."],
+["AND","Veritabanı olarak neden SQLite tercih edilmiştir?","Tablo iki alandan oluştuğu ve SQL sorguları doğrudan, açık biçimde gözlemlenebildiği için",["Room kullanılamadığı için","Daha pahalı olduğu için","İnternet gerektirdiği için"],"Görevde SQLite veya Room serbestti; sadeliği ve SQL'in net görülmesi nedeniyle SQLite seçildi."],
+["AND","Görevde SQLite'a alternatif olarak hangi seçenek belirtilmişti?","Room",["Firebase Realtime","MongoDB","PostgreSQL"],"Görev tanımı 'SQLite veya Room' şeklindeydi."],
+["AND","Müşteri listesini ekranda göstermek için hangi bileşen kullanıldı?","RecyclerView",["WebView","TableLayout","MapView"],"Müşteriler RecyclerView ile listelenir."],
+["AND","RecyclerView'ın temel avantajı nedir?","Tüm listeyi aynı anda değil, ekrana sığan kısmı oluşturur",["Veriyi şifreler","İnternetsiz çalışır","Otomatik çeviri yapar"],"Çalışma kağıdında: tüm listeyi aynı anda vermiyor, sadece ekran kadarını veriyor."],
+["AND","`DatabaseHelper` sınıfı hangi sınıftan miras alır?","`SQLiteOpenHelper`",["`AppCompatActivity`","`RecyclerView.Adapter`","`ContentValues`"],"DatabaseHelper.kt, SQLiteOpenHelper'dan miras alır."],
+["AND","`companion object` DatabaseHelper içinde ne işe yarar?","Veritabanı adı, versiyonu, tablo ve sütun adı gibi sabitleri tek yerde toplar; nesne üretmeden erişim sağlar",["Veritabanını siler","Arayüzü çizer","İnternet bağlantısı kurar"],"Sabit değerler düzenli bir şekilde bir arada tutulur."],
+["AND","Veritabanı dosyasının adı nedir?","customer.db",["staj.db","db.json","database.sqlite3"],"DATABASE_NAME sabiti \"customer.db\"dir."],
+["AND","Veritabanı sürüm numarası (DATABASE_VERSION) kaçtır?","1",["0","2","10"],"DATABASE_VERSION = 1."],
+["AND","Tablo adı nedir?","Customer",["Customers_List","Musteri","People"],"TABLE_CUSTOMER sabiti \"Customer\" değerindedir."],
+["AND","`onCreate` fonksiyonu ne zaman çalışır?","Veritabanı telefonda ilk kez oluşturulduğunda",["Her tıklamada","Uygulama kapatıldığında","Her silme işleminde"],"onCreate yalnızca veritabanı ilk oluşturulduğunda çalışır ve CREATE TABLE sorgusunu yürütür."],
+["AND","`onUpgrade` fonksiyonu ne işe yarar?","Veritabanı sürümü değiştiğinde gerekli güncelleme işlemlerini yapar",["Tabloya kayıt ekler","Listeyi sıralar","Toast gösterir"],"Sürüm değiştirilirse güncellemeler onUpgrade ile yapılır."],
+["AND","`id` alanı nasıl tanımlanmıştır?","`INTEGER PRIMARY KEY AUTOINCREMENT`",["`TEXT NOT NULL`","`BLOB UNIQUE`","`REAL DEFAULT 0`"],"id otomatik artan birincil anahtardır."],
+["AND","`name` ve `country` sütunlarındaki `NOT NULL` ne anlama gelir?","Sütun boş bırakılamaz",["Sütun silinemez","Sütun sadece sayı alır","Sütun otomatik artar"],"İsim ve ülke alanları boş geçilemez."],
+["AND","`db.execSQL()` ne yapar?","Verilen SQL komutunu veritabanında çalıştırır",["Listeyi ekrana çizer","Toast gösterir","Activity başlatır"],"CREATE TABLE sorgusu execSQL ile çalıştırılır."],
+["AND","DatabaseHelper'daki dört temel fonksiyon hangileridir?","addCustomer, getAllCustomers, updateCustomer, deleteCustomer",["insert, show, edit, remove","createTable, drop, join, merge","getUser, setUser, login, logout"],"Ekleme, listeleme, güncelleme ve silme işlemleri için dört fonksiyon yazıldı."],
+["AND","Yeni müşteri eklemek için hangi fonksiyon kullanılır?","`addCustomer`",["`getAllCustomers`","`updateCustomer`","`deleteCustomer`"],"addCustomer yeni kaydı ekler."],
+["AND","Mevcut müşterileri listelemek için hangi fonksiyon kullanılır?","`getAllCustomers`",["`addCustomer`","`updateCustomer`","`deleteCustomer`"],"getAllCustomers tüm kayıtları döndürür."],
+["AND","Müşteri bilgilerini güncelleyen fonksiyon hangisidir?","`updateCustomer`",["`addCustomer`","`getAllCustomers`","`deleteCustomer`"],"updateCustomer, kaydın isim ve ülkesini değiştirir."],
+["AND","Müşteri kaydını silen fonksiyon hangisidir?","`deleteCustomer`",["`updateCustomer`","`removeAll`","`addCustomer`"],"deleteCustomer id'ye göre kaydı siler."],
+["AND","`ContentValues` ne için kullanılmıştır?","Ekleme ve güncellemede sütun-değer çiftlerini tutmak için",["Ekrana satır çizmek için","Activity'ler arası veri taşımak için","Toast göstermek için"],"put(COLUMN_NAME, name) gibi ifadelerle değerler ContentValues'a konur."],
+["AND","Silme ve güncellemede parametreli sorgu kullanılmasının amacı nedir?","SQL enjeksiyonuna karşı daha güvenli olmak",["Daha hızlı derlemek","Ekranı döndürmek","Dosya boyutunu küçültmek"],"Where koşulundaki ? işaretiyle gelen argümanlar ayrı verilir; böylece enjeksiyon riski azalır."],
+["AND","`dbHelper = DatabaseHelper(this)` satırı ne yapar?","Veritabanı bağlantısını (yardımcı sınıf nesnesini) oluşturur",["Listeyi temizler","Yeni Activity açar","Toast gösterir"],"MainActivity içinde veritabanı bağlantısı bu şekilde yapılır."],
+["AND","Yeni müşteri ekleme kısmında hangi SQLiteDatabase metodu kullanıldı?","`db.insert`",["`db.update`","`db.delete`","`db.query`"],"Ekleme için db.insert kullanıldı."],
+["AND","Logcat nedir ve bu stajda ne için kullanıldı?","Uygulama çıktılarının izlendiği araç; test kodunun 'Müşteri sayısı: 2' çıktısını görmek için",["Emülatör indirme aracı","Layout tasarım aracı","Veritabanı şifreleme aracı"],"Henüz arayüz yokken veritabanı işlemleri Logcat'te CustomerApp etiketi ile izlendi."],
+["AND","Logcat'te hangi etiketle (tag) filtreleme yapıldı?","CustomerApp",["DatabaseHelper","MainActivity","StajApp"],"Logcat üzerinde CustomerApp etiketi kullanılarak çıktılar kontrol edildi."],
+["AND","Veritabanı testinde Logcat'te hangi çıktı görüldü?","Müşteri sayısı: 2",["Müşteri sayısı: 0","Hata: tablo yok","Müşteri sayısı: 22"],"İki örnek kayıt eklendiği için kayıt sayısı 2 olarak yazıldı."],
+["AND","Veritabanı testi için eklenen iki örnek müşteri kim?","Murat/Türkiye ve Clara/Germany",["Ahmet/Sudan ve Taha/Sivas","Eyüphan/TR ve Murat/Türkiye","Clara/Germany ve Ahmet/Sudan"],"Test kodlarıyla önce Murat/Türkiye ve Clara/Germany eklendi."],
+["AND","RecyclerView bileşeni projeye nasıl eklendi?","build.gradle.kts (Module :app) dosyasına bağımlılık olarak",["AndroidManifest.xml'e etiket olarak","db.json'a yazılarak","Logcat'ten indirilerek"],"RecyclerView varsayılan olarak yoktu; Gradle bağımlılığı eklenip senkronizasyon yapıldı."],
+["AND","Eklenen RecyclerView kütüphanesinin sürümü nedir?","`androidx.recyclerview:recyclerview:1.3.2`",["`androidx.recyclerview:recyclerview:3.0.0`","`com.google.recycler:1.0`","`androidx.core:core-ktx:1.3.2`"],"Şekil 21'de gösterilen bağımlılık 1.3.2 sürümlüdür."],
+["AND","Gradle bağımlılığı ekledikten sonra yapılması gereken işlem nedir?","Gradle senkronizasyonu (Sync)",["Bilgisayarı yeniden başlatmak","Emülatörü silmek","Projeyi yeniden adlandırmak"],"Bağımlılığın projeye yüklenmesi için Gradle sync yapılır."],
+["AND","`activity_main.xml` dosyasına hangi bileşenler eklendi?","2 EditText, 1 Button, 1 RecyclerView",["3 TextView ve 1 ImageView","1 EditText, 2 Button","1 WebView ve 1 MapView"],"İsim ve ülke için iki EditText, Ekle butonu ve liste için RecyclerView eklendi."],
+["AND","`item_customer.xml` dosyası ne için oluşturulmuştur?","RecyclerView'daki her müşteri satırının görünümünü tanımlamak için",["Manifest ayarlarını tutmak için","Veritabanı şemasını yazmak için","Toast mesajı tanımlamak için"],"Satır düzeni ayrı bir layout dosyasında tanımlanır."],
+["AND","İlk hâliyle `item_customer.xml` içinde kaç TextView kullanıldı ve neden?","İki; isim ve ülkeyi yan yana göstermek için",["Bir; sadece isim için","Üç; isim, ülke, id için","Dört; tüm sütunlar için"],"Sonradan düzenleme ve silme ikonları için ImageView'lar eklendi."],
+["AND","Adapter ne işe yarar?","Veritabanından gelen ham verileri alıp RecyclerView satırlarına yerleştirir",["Veritabanını oluşturur","Activity'leri başlatır","Gradle'ı çalıştırır"],"CustomerAdapter.kt bu bağlantıyı sağlar."],
+["AND","`onCreateViewHolder` fonksiyonu ne yapar?","Her satır için item_customer.xml görünümünü oluşturur",["Veriyi veritabanına yazar","Tıklamayı iptal eder","Toast gösterir"],"Satır tasarımını (layout) şişirir (inflate)."],
+["AND","`onBindViewHolder` fonksiyonu ne yapar?","İlgili müşterinin isim ve ülke bilgilerini satırdaki hücrelere doldurur",["Satır görünümünü yaratır","Kayıt sayısını bildirir","Veritabanını kapatır"],"Verileri satıra aktarır; tıklama dinleyicileri de burada tanımlanır."],
+["AND","`getItemCount` fonksiyonu ne yapar?","Toplam kayıt sayısını RecyclerView'a bildirir",["Silinen kayıt sayısını yazar","Listeyi sıralar","Yeni kayıt ekler"],"Liste kaç öğe gösterecek bilgisini verir."],
+["AND","`updateData` fonksiyonu neden yazıldı?","Ekleme, güncelleme ve silmeden sonra listenin yenilenmesi için",["Veritabanı oluşturmak için","Intent göndermek için","Toast yazmak için"],"Yeni liste verilip adapter yenilenir."],
+["AND","RecyclerView'ın listeyi alt alta dikey göstermesini hangi bileşen sağlar?","`LinearLayoutManager`",["`GridLayoutManager`","`ViewHolder`","`DatabaseHelper`"],"recyclerView.layoutManager = LinearLayoutManager(this)"],
+["AND","Adapter'ı RecyclerView'a bağlayan satır hangisidir?","`recyclerView.adapter = adapter`",["`recyclerView.layoutManager = adapter`","`adapter.setLayout(recyclerView)`","`startActivity(adapter)`"],"Bu satır adapter nesnesini RecyclerView bileşenine bağlar."],
+["AND","Adapter bağlanmadan önce uygulama çalıştırıldığında liste nasıl görünür?","Liste alanı boş görünür",["Uygulama çöker","Kayıtlar rastgele görünür","Listede hata mesajı çıkar"],"Adapter bağlantısı yoksa listenin boş görünmesi beklenen sonuçtur."],
+["AND","Ekle butonuna işlev kazandırmak için hangi dinleyici eklendi?","`setOnClickListener`",["`setOnKeyListener`","`onDestroy`","`onCreateOptionsMenu`"],"btnAdd.setOnClickListener ile tıklama olayı yakalanır."],
+["AND","Ekle butonuna tıklandığında önce hangi kontrol yapılır?","İsim ve ülke alanlarının boş olup olmadığı",["İnternet bağlantısı","Pil seviyesi","Ekran yönü"],"Her iki alan doluysa addCustomer çağrılır."],
+["AND","Yeni kayıt eklendikten sonra liste nasıl güncellenir?","`dbHelper.getAllCustomers()` çağrılıp sonuç `adapter.updateData()` ile verilir",["Uygulama yeniden başlatılır","Sayfa yenilenir","Telefon yeniden açılır"],"Böylece yeni kayıt listeye anlık yansır."],
+["AND","Kayıt sonrası giriş alanları nasıl temizlenir?","`etName.text.clear()` ve `etCountry.text.clear()`",["`etName.delete()`","`finish()`","`dbHelper.clear()`"],"Alanları boşaltan Kotlin ifadeleridir."],
+["AND","Yeni eklenen müşteri listenin en üstünde nasıl görünür?","`getAllCustomers` kayıtları id'ye göre azalan (DESC) sıralar",["RecyclerView otomatik tersine çevirir","Kayıt silinip yeniden eklenir","Alfabetik sıralama yapılır"],"ORDER BY id DESC sayesinde son eklenen kayıt başta gelir."],
+["AND","`DESC` ne anlama gelir?","Azalan sıralama (Descending)",["Artan sıralama","Rastgele sıralama","Silme işlemi"],"DESC azalan sırada demektir."],
+["AND","Eklenen ilk iki gerçek kayıt (Ekle butonu testi) hangileridir?","Eyüphan/TR ve Ahmet/Sudan",["Murat/Türkiye ve Clara/Germany","Taha/Sivas ve Ahmet/Hollanda","Clara/Germany ve Taha/Sivas"],"Eyüphan/TR ile başlandı, sonra Ahmet/Sudan eklendi; Ahmet listenin üstünde göründü."],
+["AND","Güncelleme için düzenleme ikonunu çizen dosya hangisidir?","`ic_edit.xml` (vector drawable)",["`ic_delete.xml`","`item_customer.kt`","`edit.png` (resim)"],"res/drawable içinde ic_edit.xml adlı vector drawable oluşturuldu."],
+["AND","Düzenleme ikonu için ImageView'da hangi özellikler etkinleştirildi?","`clickable` ve `focusable`",["`enabled` ve `visible`","`checked` ve `selected`","`hint` ve `inputType`"],"Bileşenin dokunulabilir olması için clickable ve focusable yapıldı."],
+["AND","`selectableItemBackgroundBorderless` ne için kullanıldı?","Dokunma etkileşiminin görsel olarak belli olması için",["Arka planı kalıcı kırmızı yapmak için","Veritabanını kilitlemek için","Ekranı kapatmak için"],"İkona dokunulduğunda dalga efekti verir."],
+["AND","İlk planda güncelleme moduna nasıl geçilecekti ve neden değiştirildi?","Satırın herhangi bir yerine dokununca; belirgin olmadığı için düzenleme ikonuna karar verildi",["Uzun basınca; çok yavaş olduğu için","Sallayınca; sensör olmadığı için","Çift tıklayınca; hata verdiği için"],"İşlemin belirgin olması için her satıra düzenleme ikonu eklendi."],
+["AND","Düzenleme ikonuna tıklanınca neler olur?","Müşteri bilgileri forma yazılır, müşteri `selectedCustomer`'da tutulur, buton 'Güncelle' olur",["Kayıt silinir","DetailActivity açılır","Uygulama kapanır"],"onEditClick ile MainActivity'ye aktarılan müşteri form alanlarını doldurur."],
+["AND","`selectedCustomer` değişkeni ne işe yarar?","Güncellenen (seçili) müşteriyi tutar",["Silinen kayıt sayısını tutar","Veritabanı adını tutar","Toast metnini tutar"],"Null ise ekleme modu, dolu ise güncelleme modu anlamına gelir."],
+["AND","Güncelleme modunda buton metni nedir?","Güncelle",["Kaydet","Sil","Tamam"],"btnAdd.text = \"Güncelle\" ile kullanıcı fark etsin diye metin değiştirilir."],
+["AND","Güncelleme tamamlandıktan sonra buton metni ne olur?","Tekrar 'Ekle' olur",["'Sil' olur","Boş kalır","'Güncelle' olarak kalır"],"Veritabanı güncellenir, liste yenilenir ve buton metni Ekle'ye döner."],
+["AND","Güncelleme testinde Ahmet kaydının ülkesi neye çevrildi?","Hollanda",["Sudan","TR","Germany"],"Ahmet/Sudan kaydı Ahmet/Hollanda olarak güncellendi."],
+["AND","Silme ikonu hangi dosyayla çizilmiştir?","`ic_delete.xml`",["`ic_edit.xml`","`ic_trash.png`","`activity_delete.xml`"],"Çöp kutusu ikonu için ic_delete.xml adlı vector drawable oluşturuldu."],
+["AND","Silme işleminde `CustomerAdapter` ile MainActivity arasında hangi mekanizma kullanılır?","`onDeleteClick` adlı callback",["`Intent.putExtra`","`ContentValues`","`Thread.sleep`"],"Çöp kutusu tıklanınca müşteri bilgisi (id) callback ile MainActivity'ye aktarılır."],
+["AND","Silme işleminde veritabanından kaydı hangi çağrı siler?","`dbHelper.deleteCustomer(customer.id)`",["`dbHelper.addCustomer(customer.id)`","`adapter.remove(customer)`","`customer.drop()`"],"Kayıt id'ye göre kalıcı olarak silinir."],
+["AND","Silmenin ardından RecyclerView listesi nasıl güncellenir?","`adapter.updateData(dbHelper.getAllCustomers())`",["`finish()`","`System.exit(0)`","`startActivity(intent)`"],"Güncel liste adapter'a verilir."],
+["AND","Güncelleme modundaki müşteri silinirse ne yapılır?","Form alanları temizlenir ve buton metni 'Ekle' olur",["Uygulama kapanır","Kayıt tekrar eklenir","Hiçbir şey yapılmaz"],"onDeleteClick içinde selectedCustomer?.id kontrolü yapılır."],
+["AND","Toast mesajı nedir?","Kullanıcıya kısa süreli gösterilen bildirim mesajıdır",["Kalıcı bir uyarı penceresidir","Veritabanı tablosudur","Bir XML etiketidir"],"Toast.makeText(...).show() ile gösterilir."],
+["AND","Toast mesajları hangi işlemlerin ardından gösterilir?","Ekleme, güncelleme ve silme",["Sadece silme","Sadece uygulama açılışında","Sadece hata anında"],"Her üç işlemden sonra kullanıcıya kısa bildirim verilir."],
+["AND","Toast'ı gösteren kod hangisidir?","`Toast.makeText(this, \"...\", Toast.LENGTH_SHORT).show()`",["`Log.d(\"...\")`","`startActivity(Toast)`","`dbHelper.toast()`"],"LENGTH_SHORT kısa süreli gösterim demektir."],
+["AND","Silme testinde hangi müşteri eklenip silindi?","Taha/Sivas",["Murat/Türkiye","Ahmet/Sudan","Clara/Germany"],"Taha/Sivas eklenince 'Müşteri eklendi', silinince 'Taha silindi' görüldü."],
+["AND","Taha silindikten sonra listede kaç kayıt kaldı?","4",["2","5","6"],"Eyüphan, Ahmet, Murat ve Clara: dört kayıt."],
+["AND","Opsiyonel (ekstra) özellik olarak ne geliştirildi?","DetailActivity ile Activity'ler arası veri aktarımı",["Kamera erişimi","Bildirim sesi","Harita ekranı"],"Toast mesajlarına ek olarak bir Activity'den diğerine veri aktarımı yapıldı."],
+["AND","`DetailActivity`'ye veri aktarmak için hangi sınıf kullanıldı?","`Intent`",["`Toast`","`ContentValues`","`Cursor`"],"Intent ile hem geçiş tanımlanır hem veri taşınır."],
+["AND","`intent.putExtra(\"name\", customer.name)` ne yapar?","Müşteri adını anahtar-değer (key-value) olarak Intent'e ekler",["Müşteriyi siler","Veritabanına yazar","Ekranı kapatır"],"name ve country için ayrı putExtra satırları vardır."],
+["AND","Diğer ekrana geçişi başlatan komut hangisidir?","`startActivity(intent)`",["`finish()`","`setContentView(intent)`","`onCreate(intent)`"],"startActivity ile DetailActivity açılır."],
+["AND","Detay ekranı hangi tıklamayla açılır?","Satırdaki isim/ülke bölümüne tıklayınca (kalem ve çöp kutusu hariç)",["Kalem ikonuna tıklayınca","Çöp kutusuna tıklayınca","Ekle butonuna tıklayınca"],"onItemClick ile isim ve ülke bölümü tıklanınca geçiş yapılır."],
+["AND","DetailActivity'nin layout dosyası hangisidir?","`activity_detail.xml`",["`item_customer.xml`","`activity_main.xml`","`ic_edit.xml`"],"DetailActivity.kt, activity_detail.xml'i kullanır."],
+["AND","Detay ekranı testinde hangi kayıt denendi ve ne görüldü?","Murat; 'İsim: Murat' ve 'Ülke: Türkiye'",["Ahmet; 'İsim: Ahmet' ve 'Ülke: Sudan'","Taha; 'İsim: Taha'","Clara; 'Ülke: Germany'"],"Murat kaydına tıklanınca bilgiler TextView'larda doğru görüntülendi."],
+["AND","Uygulama neden farklı bir emülatör ekran boyutuyla tekrar çalıştırıldı?","Farklı çözünürlüklerde taşma veya kesilme olmadığını kontrol etmek için",["Hız testi için","Veritabanını silmek için","Logcat'i temizlemek için"],"Form, liste ve ikonların yeni ekran boyutunda düzgün göründüğü doğrulandı."],
+["AND","App Inspection sekmesi nerede bulunur?","Android Studio'nun alt menü çubuğunda (View > Tool Windows > App Inspection)",["Build.gradle içinde","Emülatörün ayarlarında","Telefonun bildirim çubuğunda"],"Çalışma kağıdındaki not: alt menüde yoksa View > Tool Windows > App Inspection."],
+["AND","Android Studio'da Logcat simgesi nasıl tarif edilmişti?","Sol tarafta ikonlu kedi",["Sağ üstte yeşil üçgen","Alt tarafta kırmızı kare","Orta kısımda mavi daire"],"Çalışma kağıdında 'Logcat sol tarafta ikonlu kedi' yazar."],
+["AND","İlk Android çalıştırmasında emülatör ekranında ne görüldü?","Hello World!",["Müşteri listesi","Boş siyah ekran","Hata penceresi"],"Şekil 18'de MainActivity.kt kodu ve emülatörde 'Hello World!' çıktısı vardır."],
+["AND","Android uygulaması nasıl teslim edildi?","Tamamlandıktan sonra staj sorumlusuna teslim edildi",["Google Play'e yüklendi","E-postayla müşteriye gönderildi","Teslim edilmedi"],"Projenin tamamlanmasının ardından uygulama staj sorumlusuna teslim edildi."],
+];
+
+// ---------- HAT: Karşılaşılan problemler ve çözümleri ----------
+const Q4 = [
+["HAT","react-router-dom kurulumunda hangi hata yaşandı?","`npm install` komutunun eksik yazılması nedeniyle terminalde hata alındı",["Paket bulunamadı, lisans yoktu","Bilgisayar kapandı","VS Code açılmadı"],"Çözüm: komut düzeltilip kurulum tekrarlandı."],
+["HAT","PowerPoint'ten animasyon alınırken yaşanan sorunun çözümü nedir?","Dosya uzantısı ZIP yapıldı, medya klasöründeki GIF kullanıldı",["Animasyon yeniden çizildi","Video çekildi","Başka bir bilgisayar kullanıldı"],"Resim Olarak Kaydet yalnızca durağan görüntü veriyordu."],
+["HAT","İçerik metninin sayfada beklenmedik şekilde ortalanmasının çözümü nedir?","Vite'ın varsayılan `text-align: center` tanımı kaldırıldı ve yeni CSS yazıldı",["Tarayıcı değiştirildi","React sürümü düşürüldü","Navbar silindi"],"Sorun, Vite'ın varsayılan CSS'inden kaynaklanıyordu."],
+["HAT","Android projesi çalıştırılırken yaşanan emülatör sorunu nedir ve çözümü?","Emülatör kurulu değildi; yaklaşık 2,3 GB'lık dosyalar Android Studio'dan indirilip kuruldu",["Telefon bağlanmadı; USB kablosu değiştirildi","Emülatör çöktü; bilgisayar formatlandı","Java sürümü eksikti; Eclipse kuruldu"],"Emülatör dosyaları indirildikten sonra proje çalıştırıldı."],
+["HAT","Kod içinde import satırları düzenlenirken ne oldu?","Derleme hatası alındı; import ifadeleri kontrol edilip düzeltildi",["Uygulama silindi","Veritabanı bozuldu","Emülatör açılmadı"],"Hata, import ifadelerinin düzeltilmesiyle giderildi."],
+["HAT","RecyclerView bileşeninin varsayılan olarak bulunmamasının çözümü nedir?","Kütüphane `build.gradle.kts`'e bağımlılık olarak eklenip Gradle senkronize edildi",["Bileşen elle çizildi","Java'ya geçildi","Başka bir telefon kullanıldı"],"implementation(\"androidx.recyclerview:recyclerview:1.3.2\") eklendi."],
+["HAT","'Satırın herhangi bir bölümüne dokununca güncelleme moduna geçmek' neden sorun oldu?","Yeterince belirgin değildi; her satıra düzenleme ikonu eklendi",["Çok yavaştı; veritabanı değişti","Hata veriyordu; satır silindi","Uygulama kapanıyordu; Manifest düzenlendi"],"Tıklama dinleyicisi yalnızca düzenleme ikonuna tanımlandı."],
+["HAT","Toast mesajlarının ilk testte görünmemesinin nedeni neydi?","Toast satırları dosya düzenlenirken yanlışlıkla silinmişti",["Emülatör bildirimleri kapalıydı","Tema hatalıydı","İnternet yoktu"],"Kodlar tekrar eklenip uygulama yeniden çalıştırıldı."],
+["HAT","`activity_detail.xml` ve `DetailActivity.kt` ile ilgili hangi hata yapıldı?","İçerikleri yanlış dosyalara aktarıldı; doğru dosyalara taşındı",["Dosyalar silindi; yeniden indirildi","Dosya adları aynı yapıldı; biri silindi","Dosyalar yedeklenmedi; internetten alındı"],"XML içeriği Kotlin dosyasına, Kotlin içeriği XML dosyasına yazılmıştı."],
+["HAT","'Android resource linking failed' hatasının nedeni neydi?","`<activity>` etiketi `<application>` bloğunun dışına yazılmıştı",["Gradle sürümü eskiydi","Emülatör kapalıydı","Resim dosyası büyüktü"],"Etiket <application> içine, MainActivity tanımının altına taşınınca hata giderildi."],
+["HAT","`<activity>` etiketi AndroidManifest.xml'de nereye yazılmalıdır?","`<application>...</application>` bloğunun içine",["`<manifest>` bloğunun en üstüne, dışına","`<intent-filter>` içine","Dosyanın sonuna, her şeyin dışına"],"Activity tanımları application bloğunun içinde bulunmalıdır."],
+["HAT","İlk planda satırın herhangi bir yerine dokununca güncelleme moduna geçilmesi hangi tür sorun olarak kayıtlıdır?","Kullanıcı deneyimi sorunu",["Veritabanı hatası","Derleme hatası","Güvenlik açığı"],"Tablo 4'te Çalışma No 16 olarak yer alır."],
+["HAT","Staj sırasında yaşanan sorunlar nasıl aşıldı?","Araştırma yapılarak ve ekip liderinden destek alınarak",["Bilgisayar değiştirilerek","Proje silinip bırakılarak","Hiç çözülemeden"],"Defterin sonuç bölümünde bu şekilde belirtilmiştir."],
+["HAT","Karşılaşılan problemlerin kaynağı nasıl belirlendi?","Hata mesajları ve kod incelemesi yoluyla",["Tahmin yürüterek","Kullanıcı şikâyetleriyle","Rastgele denemelerle"],"Defter bu yöntemi açıkça belirtir."],
+["HAT","Hangi hata staj defterinde 11. günde (15/09) kaydedilmiştir?","Emülatörün kurulu olmaması",["Manifest hatası","Toast görünmemesi","Text-align sorunu"],"11. gün Android projesinin kurulduğu gündür."],
+["HAT","Hangi hata 18. günde (24/09) iki ayrı kayıt olarak görülür?","Yanlış dosyaya aktarım ve Manifest'te activity etiketinin dışarıda kalması",["Import hatası ve emülatör hatası","Toast ve RecyclerView","text-align ve react-router"],"DetailActivity eklenirken iki farklı hata yaşandı."],
+["HAT","Toast mesajı hatası hangi günde yaşandı?","17. gün (23/09), silme özelliği günü",["3. gün","10. gün","20. gün"],"Silme özelliği ve Toast mesajları aynı gün geliştirildi."],
+["HAT","'Resim Olarak Kaydet' sorunu hangi günde yaşandı?","4. gün (04/09)",["1. gün","9. gün","16. gün"],"4. gün açılış animasyonunun projeye eklendiği gündür."],
+["HAT","Aşağıdakilerden hangisi yaşanan hatalardan biri DEĞİLDİR?","Veritabanı şifresinin unutulması",["npm install komutunun eksik yazılması","Toast satırlarının silinmesi","Manifest etiketinin yanlış yere yazılması"],"Veritabanı şifresi bu projede yoktur."],
+["HAT","İkonlu (edit/delete) tasarım dosyaları nerede tutulur?","`res/drawable` klasöründe",["`res/layout` klasöründe","`java` klasöründe","`build` klasöründe"],"ic_edit.xml ve ic_delete.xml vector drawable dosyalarıdır."],
+["HAT","Android projesinde kod dosyaları (Kotlin) ve düzen dosyaları (XML) neden karıştırılmamalıdır?","Her dosyanın türü kendi içeriğini bekler; yanlış içerik derleme hatası verir",["Çünkü ikisi aynı şeydir","Çünkü dosya boyutu artar","Çünkü Gradle silinir"],"Yanlış dosyaya aktarım, 18. günde yaşanan hatalardan biridir."],
+];
+
+// [konu, soru, cevap] - sesli çalışmak için kısa, kendi ağzından cevaplar
+const SOZLU = [
+["Genel","Kendinizi ve staj yaptığınız yeri kısaca tanıtır mısınız?","Staj için Delta-A Software Center'daydım. Almanya merkezli Delta-A Group'un Erzurum'daki yazılım geliştirme ofisi. Web geliştirme ekibinde 01/09/2026 ile 28/09/2026 arasında 20 iş günü staj yaptım. Ofiste 10 kişi çalışıyor."],
+["Genel","Şirket ne iş yapıyor, ürünleri neler?","Restoran, fırın, kasap, kuaför ve perakende gibi işletmelere bulut tabanlı yazılım geliştiriyorlar. Ana ürünler: Delta Cloud Office (DCO) işletme yönetim yazılımı, Delta X Kassensoftware kasa yazılımı, Delta Cloud Warenwirtschaft (DCW) stok yönetimi ve Almanya muhasebe sistemi DATEV ile entegrasyon hizmetleri."],
+["Genel","Bu staj yerini neden seçtiniz?","Şirket React tabanlı projeler geliştirdiği için. React.js ve React Native bilgilerimi gerçek bir projede uygulamak istedim. Ayrıca Erzurum'da olması ulaşım ve konaklama açısından kolaylık sağladı."],
+["Genel","Stajda genel olarak neler yaptınız?","İlk gün oryantasyon aldım. Sonra 02/09 - 14/09 arasında React web uygulaması geliştirdim. 15/09 - 24/09 arasında Kotlin ile Android uygulaması yaptım. Son iki gün 25/09 ve 28/09'da OpenProject üzerinde destek taleplerinin takibini inceledim."],
+["Genel","Daily toplantısı nedir, nasıl işliyordu?","Her gün çevrim içi yapılan kısa bir senkronizasyon toplantısı. Herkes bir önceki gün neler yaptığını ve bugün neler yapacağını anlatıyor. Ekip içi iletişim ve görev takibi için kullanılıyor."],
+["Genel","Stajdan en çok ne öğrendiniz?","React tarafında useState, useEffect, routing ve veri çekmeyi uygulamalı öğrendim. Android tarafında SQLite, RecyclerView, Adapter ve Intent'i deneyimledim. Ayrıca bir yazılım şirketinde destek taleplerinin OpenProject'te statülerle nasıl takip edildiğini gördüm."],
+["Genel","Hangi zorluklarla karşılaştınız, nasıl çözdünüz?","Birkaç hata aldım: npm install komutunu eksik yazmıştım, PowerPoint'ten animasyon alırken sadece durağan resim kaydetti, Toast satırları yanlışlıkla silinmişti, Manifest'te activity etiketini application dışına yazmıştım. Hata mesajlarını ve kodu inceleyip, gerektiğinde ekip liderinden destek alarak çözdüm."],
+["React","React web projesinin amacı neydi, ne geliştirdiniz?","Firmanın delta-acloud.de sitesindeki gibi bir açılış animasyonuyla başlayan, sonra menü ve iki sayfa içeren bir web uygulaması. İlk sayfada ürün tablosu, ikinci sayfada Hakkında sayfası var. Ürünler JSON Server'dan geliyor ve sayfalama yapılıyor."],
+["React","Projeyi nasıl oluşturdunuz? Vite nedir?","`npm create vite@latest staj-projesi -- --template react` komutuyla. Vite hızlı çalışan, hazır iskelet sunan bir geliştirme aracı. `npm run dev` ile çalıştırıyorum, değişiklikler anında tarayıcıya yansıyor. Node kurulumunu `node -v` ile kontrol ettim."],
+["React","Açılış animasyonunu nasıl yaptınız?","Animasyon PowerPoint dosyasındaydı. 'Resim Olarak Kaydet' sadece durağan resim verdi. Dosya uzantısını ZIP yapıp media klasöründeki orijinal GIF'i aldım ve src/assets'e koydum. App.jsx'te import ettim. useState ile showIntro bayrağı, useEffect içinde setTimeout ile 3 saniye sonra setShowIntro(false) çağırarak kapattım."],
+["React","useState ve useEffect nedir, projede nerede kullandınız?","useState bileşenin durumunu tutar: showIntro, products ve currentPage. useEffect ise yan etkiler içindir: açılış zamanlayıcısı ve fetch ile veri çekme. Boş bağımlılık dizisi olduğu için sayfa ilk açıldığında bir kez çalışır. Zamanlayıcıyı clearTimeout ile temizliyorum."],
+["React","Sayfalar arası geçişi nasıl sağladınız?","react-router-dom paketiyle. main.jsx'te uygulamayı BrowserRouter ile sardım. App.jsx'te Routes ve Route ile hangi URL'de hangi sayfa açılacak tanımladım. Navbar'da Link bileşeniyle sayfalar arası geçiş yapıyorum. İlk kurulumda npm install komutunu eksik yazınca hata aldım, düzeltip tekrar kurdum."],
+["React","JSON Server nedir, neden kullandınız?","Gerçek bir veritabanı kurmadan, db.json dosyasını API gibi sunan sahte sunucu. Projenin amacı ön yüz geliştirmeydi, veritabanı kurmak ayrı bir iş. `npx json-server db.json --port 3001` ile çalıştırıyorum. db.json'u otomatik izlediği için sunucuyu yeniden başlatmam gerekmiyor."],
+["React","Veriyi tabloya nasıl getirdiniz?","fetch ile `http://localhost:3001/products` adresine istek attım, useEffect içinde. Gelen yanıtı JSON'a çevirip setProducts ile state'e koydum. Hata olursa catch ile konsola yazdırdım. products.length ile 22 ürünün geldiğini doğruladım. Tabloda map fonksiyonuyla her ürün için bir satır oluşturdum."],
+["React","Sayfalamayı nasıl yaptınız?","currentPage state'i tuttum, her sayfada 5 ürün gösterdim. Aktif sayfanın ürünlerini slice ile aldım. 22 ürün olduğu için 5 sayfa çıkıyor. İleri ve Geri butonları var. İlk sayfada Geri, son sayfada İleri butonu disabled oluyor."],
+["React","Hakkında sayfasında yaşadığınız stil sorunu neydi?","İçerik metni beklenmedik şekilde ortalanıyordu. CSS'e baktığımda Vite'ın varsayılan eklediği text-align: center tanımının sebep olduğunu buldum. Onu kaldırdım ve içeriği beyaz arka planlı bir karta aldım. Navbar'ı koyu arka plan ve beyaz yazıyla düzenledim, footer ekledim."],
+["React","Gerçek bir ürüne dönüşürse hangi veritabanını önerirsiniz?","Küçük ölçekli uygulamalarda SQLite, proje büyüyünce PostgreSQL veya MongoDB gibi veritabanları kullanılabilir. Ekip liderim bunu açıkladı."],
+["Android","Android uygulamasının görevi neydi?","Delta-A Android Assessment kapsamında Kotlin ile bir uygulama. Sadece isim ve ülke bilgisi olan Customer tablosu SQLite veya Room ile oluşturulacaktı. Müşteriler RecyclerView ile listelenecek, ekleme, silme ve güncelleme yapılacaktı. Toast ve Activity'ler arası veri aktarımı opsiyonel özelliklerdi."],
+["Android","Neden SQLite seçtiniz, Room değil?","Customer tablosu sadece iki alandan oluşuyor. SQLite ile doğrudan SQL sorgularını açıkça görmek ve veritabanı işlemlerini gözlemlemek istedim."],
+["Android","DatabaseHelper sınıfı nedir?","SQLiteOpenHelper sınıfından miras alan yardımcı sınıfım. companion object içinde veritabanı adı customer.db, versiyon 1, tablo adı ve sütun adı sabitlerini tutuyorum. onCreate veritabanı ilk oluşturulduğunda CREATE TABLE ile Customer tablosunu yaratır: otomatik artan id, NOT NULL name ve country. onUpgrade sürüm değişince çalışır."],
+["Android","CRUD işlemlerini nasıl yaptınız?","DatabaseHelper'da dört fonksiyon yazdım: addCustomer, getAllCustomers, updateCustomer, deleteCustomer. Ekleme ve güncellemede ContentValues kullandım. Silme ve güncellemede parametreli sorgu kullandım, çünkü SQL enjeksiyonuna karşı daha güvenli."],
+["Android","Veritabanı katmanını arayüz olmadan nasıl test ettiniz?","MainActivity'ye geçici test kodu yazdım. Murat/Türkiye ve Clara/Germany kayıtlarını ekledim, sonra tüm kayıtları alıp sayısını Logcat'e yazdırdım. CustomerApp etiketiyle 'Müşteri sayısı: 2' çıktısını gördüm."],
+["Android","RecyclerView nedir ve Adapter ne yapar?","RecyclerView tüm listeyi aynı anda değil, ekrana sığan kadarını oluşturan liste bileşeni. Adapter veritabanından gelen müşteri verilerini satırlara yerleştirir. onCreateViewHolder her satır için item_customer.xml'i oluşturur, onBindViewHolder isim ve ülkeyi doldurur, getItemCount toplam kayıt sayısını bildirir. updateData ile listeyi yeniliyorum, LinearLayoutManager ile alt alta diziyorum."],
+["Android","RecyclerView kütüphanesi ile ilgili ne sorun yaşadınız?","RecyclerView projede varsayılan olarak yoktu. build.gradle.kts dosyasının dependencies bölümüne androidx.recyclerview:recyclerview:1.3.2 bağımlılığını ekleyip Gradle senkronizasyonu yaptım."],
+["Android","Ekle butonu nasıl çalışıyor?","MainActivity'de etName, etCountry ve btnAdd'e referans aldım, butona setOnClickListener ekledim. Tıklayınca alanların boş olup olmadığına bakıyorum. Doluysa dbHelper.addCustomer ile kaydediyorum, getAllCustomers ile güncel listeyi alıp adapter.updateData ile RecyclerView'a veriyorum, sonra alanları clear() ile temizliyorum."],
+["Android","Yeni eklenen kayıt neden listenin en üstünde çıkıyor?","getAllCustomers fonksiyonunda kayıtları id'ye göre azalan (DESC) sırada sorguluyorum. Son eklenenin id'si en büyük olduğu için başa geliyor."],
+["Android","Güncelleme özelliğini nasıl yaptınız?","Önce satıra dokununca güncelleme düşünmüştüm ama belirgin olmadığı için her satıra düzenleme ikonu (ic_edit.xml vector drawable) ekledim. İkona tıklanınca onEditClick ile müşteri MainActivity'ye gidiyor, form alanları dolduruluyor, müşteri selectedCustomer'da tutuluyor ve buton 'Güncelle' oluyor. Güncelleyince liste yenileniyor ve buton tekrar 'Ekle' oluyor."],
+["Android","Silme özelliği nasıl çalışıyor?","Çöp kutusu ikonuna (ic_delete.xml) tıklayınca onDeleteClick callback'i çalışıyor. MainActivity'de dbHelper.deleteCustomer(customer.id) ile kaydı siliyorum, adapter.updateData ile listeyi yeniliyorum ve Toast gösteriyorum. Silinen müşteri güncelleme modundaysa form temizleniyor ve buton 'Ekle'ye dönüyor."],
+["Android","Toast nedir? Hangi sorunu yaşadınız?","Kullanıcıya kısa süreli bildirim gösteren mesaj. Ekleme, güncelleme ve silme sonrası gösterdim. İlk testte görünmedi, çünkü dosyayı düzenlerken Toast satırlarını yanlışlıkla silmişim. Kodları tekrar ekleyince düzeldi."],
+["Android","DetailActivity ve Intent nasıl çalışıyor?","Satırdaki isim ve ülke bölümüne tıklanınca (kalem ve çöp kutusu hariç) Intent ile MainActivity'den DetailActivity'ye geçiyorum. putExtra ile isim ve ülkeyi key-value olarak ekliyorum, startActivity(intent) ile ekranı açıyorum. DetailActivity bu bilgileri TextView'larda gösteriyor. Murat kaydıyla 'İsim: Murat, Ülke: Türkiye' çıktısını doğruladım."],
+["Android","Android'de hangi hataları yaşadınız?","Emülatör kurulu değildi, yaklaşık 2,3 GB'lık dosyaları Android Studio'dan indirdim. Import satırlarında derleme hatası aldım, kontrol edip düzelttim. DetailActivity eklerken activity_detail.xml ve DetailActivity.kt içeriklerini yanlış dosyalara yazmışım, taşıdım. AndroidManifest'te activity etiketini application bloğunun dışına yazınca 'Android resource linking failed' hatası aldım, etiketi application içine, MainActivity'nin altına taşıdım."],
+["Android","Uygulamayı farklı ekran boyutunda test ettiniz mi?","Evet, farklı bir emülatör ekran boyutu profiliyle çalıştırdım. Form alanları, liste ve ikonlar taşma veya kesilme olmadan görüntülendi."],
+["OpenProject","OpenProject nedir, stajda ne yaptınız?","Şirketin proje ve destek yönetimi için kullandığı platform. Müşteri ve sistem kaynaklı destek taleplerinin (ticket) oluşturulmasından kapatılmasına kadar takip ediliyor. Son iki gün statüleri inceledim: 1 - OPEN, 4 - IN TESTING, 2 - CLOSED."],
+["OpenProject","Statüler ne anlama geliyor?","Open: henüz işleme alınmamış veya yeni atanmış talepler. In Testing: çalışması tamamlanıp son kontrol ve kalite testinden geçen, canlıya almaya hazır olup olmadığına bakılan talepler. Closed: çözüme kavuşmuş, kapatılan ve raporlama için saklanan talepler."],
+["OpenProject","Detay sayfasında ne gördünüz?","Kapadokya Market için oluşturulan #15430 numaralı talebi inceledim. Müşterinin yaşadığı teknik problemin açıklaması, öncelik durumu ve sağdaki Activity bölümünde ekibin yorum ve iletişim geçmişi vardı. Listede ID, Subject, Priority ve Assignee bilgileri görünüyor."],
+["OpenProject","Son gün hangi sayıları gözlemlediniz?","15 açık, 795 kapalı, 8 devam eden ve 13 test aşamasında görev vardı. Bu dağılım MS Teams üzerinden de her gün ekibe iletiliyor."],
+];
+
+
+/* ================== Veri hazırlığı ================== */
+const CATS = {
+  SIR: "Şirket ve Staj",
+  WEB: "React / Web",
+  AND: "Android / SQLite",
+  OPN: "OpenProject",
+  HAT: "Hatalar ve Çözümler"
+};
+const CAT_KEYS = Object.keys(CATS);
+const ALL = [...Q1, ...Q2, ...Q3, ...Q4].map((q, i) => ({ id: i, cat: q[0], q: q[1], a: q[2], w: q[3], e: q[4] }));
+const LETTERS = ["A", "B", "C", "D"];
+
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const fmt = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("staj-" + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("staj-" + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ================== Durum ================== */
+const S = {
+  tab: "test",
+  view: "home",            // home | quiz | result
+  cats: new Set(CAT_KEYS),
+  count: 50,
+  mix: true,
+  wrong: new Set((store.get("wrong", []) || []).filter(id => id < ALL.length)),
+  last: store.get("last", null),
+  sozluCat: "Hepsi",
+  sozluList: SOZLU.slice(),
+  sozluI: 0,
+  sozluOpen: false
+};
+let Z = null; // aktif test
+
+const app = document.getElementById("app");
+
+function counts() {
+  const c = {};
+  CAT_KEYS.forEach(k => c[k] = ALL.filter(q => q.cat === k).length);
+  return c;
+}
+
+/* ================== Çizim ================== */
+function head() {
+  return `
+  <header class="top">
+    <div class="brand">
+      <small>Delta-A Software Center · Yazılım Stajı</small>
+      <h1>Staj sınav çalışması</h1>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-act="tab" data-v="test" aria-selected="${S.tab === "test"}">Test<span class="n">${ALL.length}</span></button>
+      <button class="tab" role="tab" data-act="tab" data-v="sozlu" aria-selected="${S.tab === "sozlu"}">Sözlü<span class="n">${SOZLU.length}</span></button>
+    </div>
+  </header>`;
+}
+
+function render() {
+  let body = "";
+  if (S.tab === "sozlu") body = viewSozlu();
+  else if (S.view === "quiz") body = viewQuiz();
+  else if (S.view === "result") body = viewResult();
+  else body = viewHome();
+  app.innerHTML = (S.view === "quiz" && S.tab === "test" ? "" : head()) + body;
+}
+
+function poolSize() {
+  return ALL.filter(q => S.cats.has(q.cat)).length;
+}
+
+function viewHome() {
+  const c = counts();
+  const n = poolSize();
+  const eff = S.count === 0 ? n : Math.min(S.count, n);
+  const last = S.last
+    ? `<p class="note">Son test: <b>${S.last.score} / ${S.last.total}</b> (%${S.last.pct})</p>` : "";
+  return `
+  <section class="panel">
+    <h2>Test ayarları</h2>
+    <div class="row" style="flex-direction:column;gap:8px">
+      <span class="label">Konular</span>
+      <div class="row">
+        ${CAT_KEYS.map(k => `<button class="chip" data-act="cat" data-v="${k}" aria-pressed="${S.cats.has(k)}">${CATS[k]} <span class="c">${c[k]}</span></button>`).join("")}
+      </div>
+    </div>
+    <div class="row" style="flex-direction:column;gap:8px">
+      <span class="label">Soru sayısı</span>
+      <div class="seg" role="group" aria-label="Soru sayısı">
+        ${[25, 50, 100, 0].map(v => `<button data-act="count" data-v="${v}" aria-pressed="${S.count === v}">${v === 0 ? "Hepsi" : v}</button>`).join("")}
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="mix" ${S.mix ? "checked" : ""}> Soruları karıştır</label>
+    <button class="btn primary block" data-act="start" ${n === 0 ? "disabled" : ""}>Testi başlat (${eff} soru)</button>
+    ${last}
+  </section>
+
+  <section class="panel">
+    <div class="bank">
+      <div>
+        <span class="label">Yanlışlarım</span><br>
+        <b>${S.wrong.size}</b> <span class="note">soru bekliyor</span>
+      </div>
+      <div class="row">
+        <button class="btn" data-act="startWrong" ${S.wrong.size === 0 ? "disabled" : ""}>Yanlışları çöz</button>
+        <button class="btn ghost" data-act="clearWrong" ${S.wrong.size === 0 ? "disabled" : ""}>Temizle</button>
+      </div>
+    </div>
+    <p class="note">Yanlış cevapladığın sorular burada birikir. Doğru cevaplayınca listeden çıkar.</p>
+  </section>`;
+}
+
+function buildQuestion(q) {
+  const opts = shuffle([{ t: q.a, ok: true }, ...q.w.map(t => ({ t, ok: false }))]);
+  return { ...q, opts };
+}
+
+function startQuiz(pool, source) {
+  let list = S.mix ? shuffle(pool) : pool.slice();
+  if (source === "normal" && S.count > 0) list = list.slice(0, S.count);
+  Z = { list: list.map(buildQuestion), i: 0, picked: null, score: 0, misses: [], perCat: {}, source };
+  S.view = "quiz";
+  render();
+  window.scrollTo(0, 0);
+}
+
+function viewQuiz() {
+  const q = Z.list[Z.i];
+  const total = Z.list.length;
+  const done = Z.picked !== null;
+  const pct = Math.round((Z.i + (done ? 1 : 0)) / total * 100);
+  const right = done && Z.picked !== null && q.opts[Z.picked].ok;
+  return `
+  <div class="qhead">
+    <button class="btn" data-act="quit">Çık</button>
+    <div class="prog">
+      <div class="progtxt"><span>${Z.i + 1} / ${total}</span><span class="ok">${Z.score} doğru</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+    </div>
+  </div>
+  <section class="qcard">
+    <span class="tag">${CATS[q.cat]}</span>
+    <div class="qtext">${fmt(q.q)}</div>
+    <div class="opts">
+      ${q.opts.map((o, k) => {
+        let cls = "opt";
+        if (done) { if (o.ok) cls += " correct"; else if (k === Z.picked) cls += " wrong"; else cls += " dim"; }
+        return `<button class="${cls}" data-act="pick" data-v="${k}" ${done ? "disabled" : ""}><span class="k">${LETTERS[k]}</span><span class="t">${fmt(o.t)}</span></button>`;
+      }).join("")}
+    </div>
+    ${done ? `
+    <div class="feedback ${right ? "good" : "bad"}" role="status">
+      <strong>${right ? "Doğru" : "Yanlış"}</strong>
+      <span>${fmt(q.e)}</span>
+    </div>
+    <button class="btn primary block" data-act="next">${Z.i + 1 === total ? "Sonucu gör" : "Sonraki soru"}</button>` : ""}
+  </section>`;
+}
+
+function pick(k) {
+  if (!Z || Z.picked !== null) return;
+  const q = Z.list[Z.i];
+  Z.picked = k;
+  const ok = q.opts[k].ok;
+  Z.perCat[q.cat] = Z.perCat[q.cat] || { r: 0, t: 0 };
+  Z.perCat[q.cat].t++;
+  if (ok) { Z.score++; Z.perCat[q.cat].r++; S.wrong.delete(q.id); }
+  else { Z.misses.push(q); S.wrong.add(q.id); }
+  store.set("wrong", Array.from(S.wrong));
+  render();
+}
+
+function next() {
+  if (!Z || Z.picked === null) return;
+  if (Z.i + 1 >= Z.list.length) { finish(); return; }
+  Z.i++; Z.picked = null;
+  render();
+  window.scrollTo(0, 0);
+}
+
+function finish() {
+  const total = Z.list.length;
+  const pct = Math.round(Z.score / total * 100);
+  if (Z.source !== "wrong") { S.last = { score: Z.score, total, pct }; store.set("last", S.last); }
+  S.view = "result";
+  render();
+  window.scrollTo(0, 0);
+}
+
+function verdict(p) {
+  if (p >= 90) return ["Çok iyi", "Sınava hazır görünüyorsun."];
+  if (p >= 70) return ["İyi", "Yanlışlarına bir bak, tamamdır."];
+  if (p >= 50) return ["Orta", "Zayıf konuları defterden tekrar oku."];
+  return ["Biraz daha çalış", "Çalışma kağıdını oku, sonra testi yeniden çöz."];
+}
+
+function viewResult() {
+  const total = Z.list.length;
+  const pct = Math.round(Z.score / total * 100);
+  const v = verdict(pct);
+  const cats = CAT_KEYS.filter(k => Z.perCat[k]);
+  return `
+  <section class="panel">
+    <div class="score">
+      <div class="ring" style="--p:${pct}"><div>%${pct}</div></div>
+      <div>
+        <h2>${Z.score} / ${total} doğru</h2>
+        <p><b>${v[0]}.</b> ${v[1]}</p>
+      </div>
+    </div>
+    <div class="cats">
+      ${cats.map(k => { const c = Z.perCat[k]; const p = Math.round(c.r / c.t * 100); return `
+        <div class="catrow"><span>${CATS[k]}</span><span>${c.r} / ${c.t}</span><div class="bar"><i style="width:${p}%"></i></div></div>`; }).join("")}
+    </div>
+    <div class="row">
+      ${Z.misses.length ? `<button class="btn primary" data-act="retry">Yanlışları tekrar çöz (${Z.misses.length})</button>` : ""}
+      <button class="btn" data-act="home">Yeni test</button>
+    </div>
+  </section>
+  ${Z.misses.length ? `
+  <section class="panel">
+    <h2>Yanlış yaptıkların</h2>
+    <div class="wlist">
+      ${Z.misses.map(q => `
+      <div class="witem">
+        <div class="q">${fmt(q.q)}</div>
+        <div class="a"><b>Doğru cevap</b><br>${fmt(q.a)}</div>
+        <div class="e">${fmt(q.e)}</div>
+      </div>`).join("")}
+    </div>
+  </section>` : ""}`;
+}
+
+/* ---- sözlü ---- */
+function sozluTopics() { return ["Hepsi", ...Array.from(new Set(SOZLU.map(s => s[0])))]; }
+
+function viewSozlu() {
+  const list = S.sozluList;
+  const s = list[S.sozluI];
+  return `
+  <section class="panel">
+    <h2>Sözlü sınav soruları</h2>
+    <p class="note">Önce soruyu sesli cevapla, sonra cevabı aç ve karşılaştır. Cevaplar kendi ağzından, defterdeki bilgilere göre yazıldı.</p>
+    <div class="row">
+      ${sozluTopics().map(t => `<button class="chip" data-act="stopic" data-v="${t}" aria-pressed="${S.sozluCat === t}">${t}</button>`).join("")}
+    </div>
+  </section>
+  ${list.length === 0 ? `<div class="empty">Bu konuda soru yok.</div>` : `
+  <div class="progtxt" style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--muted)"><span>${S.sozluI + 1} / ${list.length}</span><span>${esc(s[0])}</span></div>
+  <section class="scard">
+    <div class="sq">${fmt(s[1])}</div>
+    ${S.sozluOpen
+      ? `<div class="sa"><span class="label">Örnek cevap</span>${fmt(s[2])}</div>`
+      : `<button class="btn primary block" data-act="sopen">Cevabı göster</button>`}
+    <div class="nav">
+      <button class="btn" data-act="sprev" ${S.sozluI === 0 ? "disabled" : ""}>Önceki</button>
+      <button class="btn" data-act="sshuffle">Karıştır</button>
+      <button class="btn" data-act="snext" ${S.sozluI >= list.length - 1 ? "disabled" : ""}>Sonraki</button>
+    </div>
+  </section>`}`;
+}
+
+function setSozlu(topic) {
+  S.sozluCat = topic;
+  S.sozluList = topic === "Hepsi" ? SOZLU.slice() : SOZLU.filter(s => s[0] === topic);
+  S.sozluI = 0; S.sozluOpen = false;
+}
+
+/* ================== Olaylar ================== */
+app.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act, v = el.dataset.v;
+  switch (act) {
+    case "tab": S.tab = v; if (v === "test" && S.view === "quiz") S.view = "home"; render(); break;
+    case "cat":
+      if (S.cats.has(v)) { if (S.cats.size > 1) S.cats.delete(v); } else S.cats.add(v);
+      render(); break;
+    case "count": S.count = Number(v); render(); break;
+    case "start": startQuiz(ALL.filter(q => S.cats.has(q.cat)), "normal"); break;
+    case "startWrong": startQuiz(ALL.filter(q => S.wrong.has(q.id)), "wrong"); break;
+    case "clearWrong": S.wrong.clear(); store.set("wrong", []); render(); break;
+    case "pick": pick(Number(v)); break;
+    case "next": next(); break;
+    case "quit": Z = null; S.view = "home"; render(); break;
+    case "retry": startQuiz(Z.misses.map(m => ALL[m.id]), "retry"); break;
+    case "home": Z = null; S.view = "home"; render(); break;
+    case "stopic": setSozlu(v); render(); break;
+    case "sopen": S.sozluOpen = true; render(); break;
+    case "sprev": if (S.sozluI > 0) { S.sozluI--; S.sozluOpen = false; render(); } break;
+    case "snext": if (S.sozluI < S.sozluList.length - 1) { S.sozluI++; S.sozluOpen = false; render(); } break;
+    case "sshuffle": S.sozluList = shuffle(S.sozluList); S.sozluI = 0; S.sozluOpen = false; render(); break;
+  }
+});
+app.addEventListener("change", e => {
+  if (e.target.id === "mix") S.mix = e.target.checked;
+});
+document.addEventListener("keydown", e => {
+  if (S.tab !== "test" || S.view !== "quiz" || !Z) return;
+  if (["1", "2", "3", "4"].includes(e.key) && Z.picked === null) pick(Number(e.key) - 1);
+  else if (e.key === "Enter" && Z.picked !== null) { e.preventDefault(); next(); }
+});
+
+render();
+</script>
+</body>
+</html>
